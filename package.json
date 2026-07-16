@@ -1,6 +1,6 @@
 {
     "name": "@anorak-games/eslint-config",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "type": "module",
     "description": "Shared ESLint flat-config for Anorak projects — one frontend factory (Expo client + Vite admin) and one backend config, so the convention rules live in a single place.",
     "license": "MIT",
