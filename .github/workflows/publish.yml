@@ -9,7 +9,7 @@ on:
 
 permissions:
     contents: write
-    id-token: write # npm provenance
+    id-token: write # npm trusted publishing (OIDC) — also generates provenance
 
 jobs:
     publish:
@@ -20,7 +20,8 @@ jobs:
               with:
                   node-version: 22
                   cache: npm
-                  registry-url: https://registry.npmjs.org
+            # Trusted publishing needs npm >= 11.5.1; node 22 ships npm 10
+            - run: npm install -g npm@11
             - run: npm ci
             - run: npm test
             - name: Set version from release tag
@@ -35,16 +36,15 @@ jobs:
                   fi
             - name: Publish to npm
               if: steps.check.outputs.published != 'true'
-              run: npm publish --access public --provenance
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: npm publish --access public
             - name: Sync version back to main
               run: |
                   VERSION="${GITHUB_REF_NAME#v}"
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
                   git fetch origin main
-                  git checkout -B main origin/main
+                  git checkout -f -B main origin/main
+                  git reset --hard origin/main
                   CURRENT=$(node -p "require('./package.json').version")
                   if [ "$CURRENT" != "$VERSION" ]; then
                       npm version "$VERSION" --no-git-tag-version --allow-same-version
